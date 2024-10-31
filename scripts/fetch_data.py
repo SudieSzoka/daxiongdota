@@ -1,45 +1,42 @@
 import os
-import requests
+import sys
 import json
 
-def fetch_webhook_data(url):
-    response = requests.get(url)
-    response.raise_for_status()
-    return response.json()
+def main():
+    if len(sys.argv) < 2:
+        print("No data provided.")
+        return
 
-def save_data(data, directory='data'):
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    
-    for user in data:
-        user_id = user.get('user_id')
-        if not user_id:
-            continue  # 跳过没有 user_id 的记录
-        
-        user_file = os.path.join(directory, f'{user_id}.json')
-        
-        # 读取现有数据
+    try:
+        payload = json.loads(sys.argv[1])
+        user_id = payload.get("user")
+        data = payload.get("data")
+
+        if not user_id or data is None:
+            print("Invalid payload.")
+            return
+
+        data_dir = 'data'
+        os.makedirs(data_dir, exist_ok=True)
+        user_file = os.path.join(data_dir, f"{user_id}.json")
+
         if os.path.exists(user_file):
             with open(user_file, 'r', encoding='utf-8') as f:
-                try:
-                    user_data = json.load(f)
-                except json.JSONDecodeError:
-                    user_data = []
+                data_list = json.load(f)
         else:
-            user_data = []
-        
-        # 添加新记录
-        new_records = user.get('records', [])
-        user_data.extend(new_records)
-        
-        # 保存回文件
-        with open(user_file, 'w', encoding='utf-8') as f:
-            json.dump(user_data, f, ensure_ascii=False, indent=4)
+            data_list = []
 
-def main():
-    webhook_url = os.getenv('WEBHOOK_URL')
-    data = fetch_webhook_data(webhook_url)
-    save_data(data)
+        data_list.append(data)
+
+        with open(user_file, 'w', encoding='utf-8', indent=4) as f:
+            json.dump(data_list, f, ensure_ascii=False)
+
+        print(f"Data appended to {user_file} successfully.")
+
+    except json.JSONDecodeError:
+        print("Failed to decode JSON.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 if __name__ == "__main__":
     main()
