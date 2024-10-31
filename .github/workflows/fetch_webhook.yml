@@ -1,37 +1,21 @@
-name: Fetch Webhook Data Hourly
+name: Fetch Webhook
 
 on:
-  schedule:
-    - cron: '0 * * * *' # 每小时运行一次
+  repository_dispatch:
+    types: [fetch_data]
 
 jobs:
-  fetch_data:
+  handle_webhook:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: '3.9'
 
-      - name: Install dependencies
+      - name: Run Fetch Data Script
         run: |
-          python -m pip install --upgrade pip
-          pip install requests
-
-      - name: Fetch webhook data and save as JSON
-        env:
-          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
-        run: |
-          python scripts/fetch_data.py
-      
-      - name: Commit and push data
-        run: |
-          git config --local user.name "github-actions"
-          git config --local user.email "github-actions@github.com"
-          git add data/
-          git commit -m "Update user data $(date +'%Y-%m-%d_%H-%M-%S')"
-          git push
+          python scripts/fetch_data.py "${{ github.event.client_payload }}"
