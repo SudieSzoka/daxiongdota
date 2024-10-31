@@ -28,8 +28,8 @@ def main():
 
         data_list.append(data)
 
-        with open(user_file, 'w', encoding='utf-8', indent=4) as f:
-            json.dump(data_list, f, ensure_ascii=False)
+        with open(user_file, 'w', encoding='utf-8') as f:
+            json.dump(data_list, f, ensure_ascii=False, indent=4)
 
         print(f"Data appended to {user_file} successfully.")
 
