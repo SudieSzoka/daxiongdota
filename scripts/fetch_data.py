@@ -9,10 +9,18 @@ def main():
 
     try:
         payload = json.loads(sys.argv[1])
-        users = payload.get("user")
-        data_payload = payload.get("data")
+        # 确保 users 是列表格式
+        users = payload.get("user", [])
+        if isinstance(users, str):
+            users = [users]
+        
+        data_payload = payload.get("data", {})
+        # 确保所有数据都是列表格式
+        for key in data_payload:
+            if isinstance(data_payload[key], str):
+                data_payload[key] = [data_payload[key]]
 
-        if not users or data_payload is None:
+        if not users or not data_payload:
             print("Invalid payload.")
             return
 
